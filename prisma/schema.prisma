@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model paises {
+  id_pais Int       @id @default(autoincrement())
+  pais    String
+  estado  estados[]
+}
+
+model estados {
+  id_estado Int        @id @default(autoincrement())
+  id_pais   Int
+  estado    String
+  ciudad    ciudades[]
+  pais      paises     @relation(fields: [id_pais], references: [id_pais])
+
+  @@index([id_pais], map: "estados_id_pais_fkey")
+}
+
+model ciudades {
+  id_ciudad Int          @id @default(autoincrement())
+  id_estado Int
+  ciudad    String
+  estado    estados      @relation(fields: [id_estado], references: [id_estado])
+  parroquia parroquias[]
+
+  @@index([id_estado], map: "ciudades_id_estado_fkey")
+}
+
+model parroquias {
+  id_parroquia Int          @id @default(autoincrement())
+  id_ciudad    Int
+  parroquia    String
+  cod_postal   cod_postal[]
+  ciudad       ciudades     @relation(fields: [id_ciudad], references: [id_ciudad])
+
+  @@index([id_ciudad], map: "parroquias_id_ciudad_fkey")
+}
+
+model cod_postal {
+  id_cod_postal Int           @id @default(autoincrement())
+  id_parroquia  Int
+  cod_postal    String
+  parroquia     parroquias    @relation(fields: [id_parroquia], references: [id_parroquia])
+  ubicacion     ubicaciones[]
+
+  @@index([id_parroquia], map: "cod_postal_id_parroquia_fkey")
+}
+
+model ubicaciones {
+  id_ubicacion   Int        @id @default(autoincrement())
+  id_cod_postal  Int
+  id_persona     String
+  desc_ubicacion String
+  cod_postal     cod_postal @relation(fields: [id_cod_postal], references: [id_cod_postal])
+  persona        personas   @relation(fields: [id_persona], references: [id_persona])
+
+  @@index([id_cod_postal], map: "ubicaciones_id_cod_postal_fkey")
+  @@index([id_persona], map: "ubicaciones_id_persona_fkey")
+}
+
+model personas {
+  id_persona       String        @id
+  id_genero        Int
+  primer_nombre    String
+  primer_apellido  String
+  segundo_nombre   String
+  segundo_apellido String
+  fecha_naci       DateTime
+  telefono         String
+  desc_personal    String
+  genero           generos       @relation(fields: [id_genero], references: [id_genero])
+  ubicaciones      ubicaciones[]
+  usuario          usuarios[]
+
+  @@index([id_genero], map: "personas_id_genero_fkey")
+}
+
+model generos {
+  id_genero Int        @id @default(autoincrement())
+  genero    String
+  persona   personas[]
+}
+
+model usuarios {
+  email                  String          @unique
+  username               String          @unique
+  password               String
+  creacion               DateTime
+  actualizacion          DateTime
+  clave                  String
+  id_persona             String
+  id_rol                 Int
+  id_usuario             String          @id
+  pregunta_recuperacion  String
+  respuesta_recuperacion String
+  status                 Boolean
+  usuario_x_red          usuario_x_red[]
+  persona                personas        @relation(fields: [id_persona], references: [id_persona])
+  rol                    roles           @relation(fields: [id_rol], references: [id_rol])
+
+  @@index([id_persona], map: "usuarios_id_persona_fkey")
+  @@index([id_rol], map: "usuarios_id_rol_fkey")
+}
+
+model roles {
+  id_rol  Int        @id
+  rol     String
+  usuario usuarios[]
+}
+
+model redes_sociales {
+  id_red_social Int             @id
+  red_social    String
+  usuario_x_red usuario_x_red[]
+}
+
+model usuario_x_red {
+  id_usuario_x_red String         @id
+  id_usuario       String
+  id_red_social    Int
+  usuario_x_red    String
+  red_social       redes_sociales @relation(fields: [id_red_social], references: [id_red_social])
+  usuario          usuarios       @relation(fields: [id_usuario], references: [id_usuario])
+
+  @@index([id_red_social], map: "usuario_x_red_id_red_social_fkey")
+  @@index([id_usuario], map: "usuario_x_red_id_usuario_fkey")
+}
